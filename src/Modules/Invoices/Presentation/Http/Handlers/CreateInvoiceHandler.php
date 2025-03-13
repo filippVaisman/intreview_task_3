@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Invoices\Domain\Services\InvoiceService;
+use Modules\Invoices\Presentation\Http\Responses\CreateInvoiceResponse;
 use Modules\Invoices\Presentation\Http\Validators\CreateInvoiceValidator;
 
 final readonly class CreateInvoiceHandler
@@ -23,9 +24,7 @@ final readonly class CreateInvoiceHandler
         try {
             $validatedData = $this->validator->validate($request->all());
         } catch (ValidationException $e) {
-            return new JsonResponse([
-                'errors' => $e->errors()
-            ], 422);
+            return CreateInvoiceResponse::validationError($e->errors());
         }
 
         $invoice = $this->invoiceService->createInvoice(
@@ -34,9 +33,6 @@ final readonly class CreateInvoiceHandler
             $validatedData['product_lines'] ?? []
         );
 
-        return new JsonResponse([
-            'id' => $invoice->id(),
-            'status' => $invoice->status()->value,
-        ], 201);
+        return CreateInvoiceResponse::fromInvoice($invoice);
     }
 }

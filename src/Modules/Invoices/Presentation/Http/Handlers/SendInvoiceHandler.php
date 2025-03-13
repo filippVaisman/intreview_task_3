@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Modules\Invoices\Application\Exceptions\InvalidInvoiceStateException;
 use Modules\Invoices\Application\Exceptions\InvoiceNotFoundException;
 use Modules\Invoices\Domain\Services\InvoiceService;
+use Modules\Invoices\Presentation\Http\Responses\SendInvoiceResponse;
 
 final readonly class SendInvoiceHandler
 {
@@ -22,11 +23,11 @@ final readonly class SendInvoiceHandler
         try {
             $this->invoiceService->sendInvoice($invoiceId);
 
-            return new JsonResponse(['status' => 'sending']);
+            return SendInvoiceResponse::success();
         } catch (InvoiceNotFoundException $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 404);
+            return SendInvoiceResponse::notFound($e->getMessage());
         } catch (InvalidInvoiceStateException $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 422);
+            return SendInvoiceResponse::invalidState($e->getMessage());
         }
     }
 }
